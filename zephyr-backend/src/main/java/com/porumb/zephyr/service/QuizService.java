@@ -5,6 +5,7 @@ import com.porumb.zephyr.dao.QuizDao;
 import com.porumb.zephyr.model.Question;
 import com.porumb.zephyr.model.QuestionWrapper;
 import com.porumb.zephyr.model.Quiz;
+import com.porumb.zephyr.model.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -45,5 +47,22 @@ public class QuizService {
         }
 
         return new ResponseEntity<>(questionsForUser, HttpStatus.OK);
+    }
+
+    public ResponseEntity<Integer> calculateResult(Integer id, List<Response> responses) {
+        Optional<Quiz> quiz = quizDao.findById(id);
+        List<Question> questions = quiz.get().getQuestions();
+        int rightAnswer = 0;
+        for(Response r : responses) {
+            Question matchingQuestion = questions.stream()
+                    .filter(q -> Objects.equals(q.getId(), r.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (matchingQuestion != null && r.getAnswer().equals(matchingQuestion.getRightAnswer())) {
+                rightAnswer++;
+            }
+        }
+        return new ResponseEntity<>(rightAnswer, HttpStatus.OK);
     }
 }
