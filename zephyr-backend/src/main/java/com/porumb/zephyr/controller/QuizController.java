@@ -5,6 +5,8 @@ import com.porumb.zephyr.model.Response;
 import com.porumb.zephyr.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.List;
 public class QuizController {
     @Autowired
     QuizService quizService;
+    @Secured("ROLE_ADMIN")
     @PostMapping("create")
     public ResponseEntity<String> createQuiz(@RequestParam String category, @RequestParam String difficulty, @RequestParam int numQ, @RequestParam String title){
         return quizService.createQuiz(category, difficulty, numQ, title);
