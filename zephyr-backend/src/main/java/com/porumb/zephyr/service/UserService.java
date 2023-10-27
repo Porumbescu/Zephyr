@@ -22,6 +22,10 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    public User findUserByEmail(String email) {
+        return userDao.findByEmail(email);
+    }
+
     public ResponseEntity<String> registerUser(String email, String password, String role) {
         logger.info("Entering registerUser with email: {}, password: {}, role: {}", email, password, role);
         try {

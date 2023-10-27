@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("quiz")
+@RequestMapping("api/quiz")
 public class QuizController {
     @Autowired
     QuizService quizService;
@@ -19,12 +19,12 @@ public class QuizController {
         return quizService.createQuiz(category, difficulty, numQ, title);
     }
 
-    @GetMapping("get/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(@PathVariable Integer id){
         return quizService.getQuizQuestions(id);
     }
 
-    @PostMapping("submit/{id}")
+    @PostMapping("{id}/submit")
     public ResponseEntity<Integer> submitQuiz(@PathVariable Integer id, @RequestBody List<Response> responses){
         return quizService.calculateResult(id, responses);
     }
