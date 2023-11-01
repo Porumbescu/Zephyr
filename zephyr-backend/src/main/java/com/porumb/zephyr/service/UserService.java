@@ -2,6 +2,8 @@ package com.porumb.zephyr.service;
 
 import com.porumb.zephyr.config.JwtUtil;
 import com.porumb.zephyr.dao.UserDao;
+import com.porumb.zephyr.dao.UserQuizHistoryDao;
+import com.porumb.zephyr.model.Quiz;
 import com.porumb.zephyr.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -19,6 +23,10 @@ public class UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private UserQuizHistoryDao userQuizHistoryDao;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -53,5 +61,10 @@ public class UserService {
 
         String token = JwtUtil.generateToken(email);
         return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    public ResponseEntity<List<Quiz>> getCompletedQuizzes(Integer userId) {
+        List<Quiz> completedQuizzes = userQuizHistoryDao.findCompletedQuizzesByUserId(userId);
+        return new ResponseEntity<>(completedQuizzes, HttpStatus.OK);
     }
 }

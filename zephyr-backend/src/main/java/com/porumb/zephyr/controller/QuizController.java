@@ -1,12 +1,13 @@
 package com.porumb.zephyr.controller;
 
+import com.porumb.zephyr.model.Question;
 import com.porumb.zephyr.model.QuestionWrapper;
+import com.porumb.zephyr.model.Quiz;
 import com.porumb.zephyr.model.Response;
 import com.porumb.zephyr.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +17,12 @@ import java.util.List;
 public class QuizController {
     @Autowired
     QuizService quizService;
+
+    @GetMapping
+    public ResponseEntity<List<Quiz>> GetAllQuizzes(){
+        return quizService.getAllQuizzes();
+    }
+
     @Secured("ROLE_ADMIN")
     @PostMapping("create")
     public ResponseEntity<String> createQuiz(@RequestParam String category, @RequestParam String difficulty, @RequestParam int numQ, @RequestParam String title){
@@ -31,4 +38,11 @@ public class QuizController {
     public ResponseEntity<Integer> submitQuiz(@PathVariable Integer id, @RequestBody List<Response> responses){
         return quizService.calculateResult(id, responses);
     }
+
+    @Secured("ROLE_ADMIN")
+    @DeleteMapping("{id}/delete")
+    public ResponseEntity<String> deleteQuiz(@PathVariable Integer id) {
+        return quizService.deleteQuiz(id);
+    }
+
 }
