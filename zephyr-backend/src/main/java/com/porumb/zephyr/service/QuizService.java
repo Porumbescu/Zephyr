@@ -12,10 +12,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 @Service
 public class QuizService {
@@ -43,10 +42,10 @@ public class QuizService {
 
         Quiz quiz = new Quiz();
         quiz.setTitle(title);
+        quiz.setCategory(category);
         quiz.setQuestions(questions);
         quizDao.save(quiz);
-
-        return new ResponseEntity<>("Success", HttpStatus.CREATED);
+        return new ResponseEntity<>("Quiz created successfully.", HttpStatus.CREATED);
     }
 
     public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(Integer id) {
@@ -100,6 +99,8 @@ public class QuizService {
     public ResponseEntity<Integer> calculateResult(Integer id, List<Response> responses) {
         Optional<Quiz> quiz = quizDao.findById(id);
         List<Question> questions = quiz.get().getQuestions();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
         int rightAnswer = 0;
         for(Response r : responses) {
             Question matchingQuestion = questions.stream()
@@ -110,7 +111,28 @@ public class QuizService {
                 rightAnswer++;
             }
         }
+
+        User user = userDao.findByEmail(userEmail);
+        if (user != null) {
+            updateStreak(user);
+            userDao.save(user);
+        }
+
         return new ResponseEntity<>(rightAnswer, HttpStatus.OK);
+    }
+
+    private void updateStreak(User user) {
+        Date now = new Date();
+        LocalDate lastQuizLocalDate = null;
+        if (user.getLastQuizDate() != null) {
+            lastQuizLocalDate = user.getLastQuizDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        LocalDate nowLocalDate = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        if (lastQuizLocalDate == null || !lastQuizLocalDate.isEqual(nowLocalDate)) {
+            user.setStreak(user.getStreak() + 1);
+        }
+        user.setLastQuizDate(now);
     }
 
     public ResponseEntity<String> deleteQuiz(Integer id) {

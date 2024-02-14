@@ -8,12 +8,16 @@ import com.porumb.zephyr.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -66,5 +70,27 @@ public class UserService {
     public ResponseEntity<List<Quiz>> getCompletedQuizzes(Integer userId) {
         List<Quiz> completedQuizzes = userQuizHistoryDao.findCompletedQuizzesByUserId(userId);
         return new ResponseEntity<>(completedQuizzes, HttpStatus.OK);
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void resetStreaksForInactivity() {
+        List<User> users = userDao.findAll();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        users.forEach(user -> {
+            LocalDate lastQuizDate = user.getLastQuizDate() != null
+                    ? user.getLastQuizDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                    : null;
+
+            if (lastQuizDate == null || !lastQuizDate.isEqual(yesterday)) {
+                user.setStreak(0);
+                userDao.save(user);
+            }
+        });
+    }
+
+    private boolean isSameDay(Date date1, Date date2) {
+        LocalDate localDate1 = date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate localDate2 = date2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return localDate1.isEqual(localDate2);
     }
 }
